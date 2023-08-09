@@ -1,0 +1,59 @@
+version: '3'
+services:
+  react-client:
+    image: react-client
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    stdin_open: true
+    ports:
+      - "9227:9229"
+      - "3000:3000"
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: 
+      - nodemon
+      - --inspect=0.0.0.0:9229
+      - index.js
+
+  node-server:
+    image: node-server
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "9229:9229"
+      - "5000:5000"
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: 
+      - nodemon
+      - --inspect=0.0.0.0:9229
+      - index.js
+    networks:
+      - mern-chat-app
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:3.6.19-xenial
+    ports:
+      - "27017:27017"
+    networks:
+      - mern-chat-app
+    volumes:
+      - mongo-data:/data/db
+
+networks:
+  mern-chat-app:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
